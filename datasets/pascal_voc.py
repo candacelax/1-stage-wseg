@@ -175,7 +175,6 @@ class VOCSegmentation(PascalVOC):
 
         # general resize, normalize and toTensor
         image, mask = self.transform(image, mask)
-        mask = None # TODO figure out why mask is being transformed
         return image, labels, os.path.basename(self.images[index])
 
     @property
