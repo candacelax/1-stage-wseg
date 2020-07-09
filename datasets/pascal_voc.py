@@ -104,7 +104,6 @@ class VOCSegmentation(PascalVOC):
 
     def __init__(self, cfg, split, test_mode, root=os.path.expanduser('./data')):
         super(VOCSegmentation, self).__init__()
-
         self.cfg = cfg
         self.root = root
         self.split = split
@@ -112,13 +111,13 @@ class VOCSegmentation(PascalVOC):
 
         # train/val/test splits are pre-cut
         if self.split == 'train':
-            _split_f = os.path.join(self.root, 'train_augvoc.txt')
-        elif self.split == 'train_voc':
-            _split_f = os.path.join(self.root, 'train_voc.txt')
+            _split_f = os.path.join(self.root, 'voc', 'train_augvoc.txt')
+        elif self.split == 'train_val':
+            _split_f = os.path.join(self.root, 'voc', 'train_voc.txt')
         elif self.split == 'val':
-            _split_f = os.path.join(self.root, 'val_voc.txt')
+            _split_f = os.path.join(self.root, 'voc', 'val_voc.txt')
         elif self.split == 'test':
-            _split_f = os.path.join(self.root, 'test.txt')
+            _split_f = os.path.join(self.root, 'voc', 'test.txt')
         else:
             raise RuntimeError('Unknown dataset split.')
 
@@ -176,7 +175,7 @@ class VOCSegmentation(PascalVOC):
 
         # general resize, normalize and toTensor
         image, mask = self.transform(image, mask)
-
+        mask = None # TODO figure out why mask is being transformed
         return image, labels, os.path.basename(self.images[index])
 
     @property
