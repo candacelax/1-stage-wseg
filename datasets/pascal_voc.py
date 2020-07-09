@@ -144,11 +144,11 @@ class VOCSegmentation(PascalVOC):
             elif self.split == 'val':
                 assert len(self.images) == 1449
 
-        self.transform = tf.Compose([tf.MaskRandResizedCrop(self.cfg.DATASET), \
-                                     tf.MaskHFlip(), \
-                                     tf.MaskColourJitter(p = 1.0), \
-                                     tf.MaskNormalise(self.MEAN, self.STD), \
-                                     tf.MaskToTensor()])
+        self.transform = tf.MaskCompose([tf.MaskRandResizedCrop(self.cfg.DATASET), \
+                                         tf.MaskHFlip(), \
+                                         tf.MaskColourJitter(p = 1.0), \
+                                         tf.MaskNormalise(self.MEAN, self.STD), \
+                                         tf.MaskToTensor()])
 
     def __len__(self):
         return len(self.images)
