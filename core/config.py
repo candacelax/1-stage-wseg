@@ -34,6 +34,7 @@ __C.TRAIN.NUM_EPOCHS = 15
 __C.TRAIN.NUM_WORKERS = 4
 __C.TRAIN.MASK_LOSS = 0.0
 __C.TRAIN.PRETRAIN = 5
+__C.TRAIN.DATA_ROOT = "/data/your_directory"
 
 # ---------------------------------------------------------------------------- #
 # Inference options
