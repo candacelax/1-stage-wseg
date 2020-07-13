@@ -102,7 +102,7 @@ class PascalVOC(Dataset):
 
 class VOCSegmentation(PascalVOC):
 
-    def __init__(self, cfg, split, test_mode, root=os.path.expanduser('./data')):
+    def __init__(self, cfg, split, test_mode, root):
         super(VOCSegmentation, self).__init__()
         self.cfg = cfg
         self.root = root
