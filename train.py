@@ -24,10 +24,12 @@ from utils.timer import Timer
 from utils.stat_manager import StatManager
 from utils.metrics import compute_jaccard
 
+# TOOD worked with nightly; going to have to figure out apex/amp issue
+
 # specific to pytorch-v1 cuda-9.0
 # see: https://github.com/pytorch/pytorch/issues/15054#issuecomment-450191923
 # and: https://github.com/pytorch/pytorch/issues/14456
-#torch.backends.cudnn.benchmark = False
+torch.backends.cudnn.benchmark = True
 #torch.backends.cudnn.deterministic = True # needed for newer pytorch versions
 DEBUG = False
 

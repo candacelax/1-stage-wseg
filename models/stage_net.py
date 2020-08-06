@@ -53,16 +53,18 @@ def balanced_mask_loss_ce(mask, pseudo_gt, gt_labels, ignore_index=255):
     - cancel loss if only one class in pseudo_gt
     - weight loss equally between classes
     """
-
     mask = F.interpolate(mask, size=pseudo_gt.size()[-2:], mode="bilinear", align_corners=True)
-    
+
     # indices of the max classes
     mask_gt = torch.argmax(pseudo_gt, 1)
-
+    
     # for each pixel there should be at least one 1
     # otherwise, ignore
-    weight = pseudo_gt.sum(1).type_as(mask_gt)
-    mask_gt += (1 - weight) * ignore_index
+    # UPDATED FOR PYTORCH > 1
+    #weight = pseudo_gt.sum(1).type_as(mask_gt)
+    #mask_gt += (1 - weight) * ignore_index
+    ignore_mask = (pseudo_gt.sum(1) == 0)
+    mask_gt.masked_fill_(mask=ignore_mask, value=ignore_index)
 
     # class weight balances the loss w.r.t. number of pixels
     # because we are equally interested in all classes
@@ -295,7 +297,6 @@ def network_factory(cfg):
             #
             # 5. Finalising the masks and scores
             #
-
             # constant BG scores
             bg = torch.ones_like(x[:, :1])
             x = torch.cat([bg, x], 1)
