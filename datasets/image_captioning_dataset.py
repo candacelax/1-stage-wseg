@@ -169,51 +169,13 @@ class CaptioningSegmentation(CaptioningDataset):
     def pred_offset(self):
         return 0
 
-
 class COCOSegmentation(CaptioningSegmentation):
     def __init__(self, cfg, split, test_mode, root=None):
-        self.cfg = cfg
-        if root is None:
-            root = os.path.expanduser('./data')
-        self.root = root
-        self.split = split
-        self.test_mode = test_mode
-
-        # train/val/test splits are pre-cut
-        if self.split == 'train':
-            self._split_f = os.path.join(self.root, 'train_coco.tsv')
-        elif self.split == 'train_val':
-            self._split_f = os.path.join(self.root, 'trainval_coco.tsv')
-        elif self.split == 'val':
-            self._split_f = os.path.join(self.root, 'val_coco.tsv')
-        else:
-            raise RuntimeError('Unknown dataset split.')
-
-        assert os.path.isfile(self._split_f), "%s not found" % self._split_f
-        super(COCOSegmentation, self).__init__()
-
-
+        self.dataset_name = "coco"
+        super(COCOSegmentation, self).__init__(cfg, split, test_mode, root=root)
 
 class ConceptualCaptionsSegmentation(CaptioningSegmentation):
     def __init__(self, cfg, split, test_mode, root=None):
-        print("here")
-        self.cfg = cfg
-        if root is None:
-            root = os.path.expanduser('./data')
-        self.root = root
-        self.split = split
-        self.test_mode = test_mode
-
-        # train/val/test splits are pre-cut
-        if self.split == 'train':
-            self._split_f = os.path.join(self.root, 'train_concap.tsv')
-        elif self.split == 'train_val':
-            self._split_f = os.path.join(self.root, 'trainval_concap.tsv')
-        elif self.split == 'val':
-            self._split_f = os.path.join(self.root, 'val_concap.tsv')
-        else:
-            raise RuntimeError('Unknown dataset split.')
-
-        assert os.path.isfile(self._split_f), "%s not found" % self._split_f
-        super(ConceptualCaptionsSegmentation, self).__init__()
+        self.dataset_name = "concap"
+        super(ConceptualCaptionsSegmentation, self).__init__(cfg, split, test_mode, root=root)
 

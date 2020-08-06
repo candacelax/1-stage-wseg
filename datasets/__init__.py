@@ -1,6 +1,7 @@
 from torch.utils import data
 from .pascal_voc import VOCSegmentation
-from .image_captioning_dataset import COCOSegmentation, ConceptualCaptionsSegmentation
+from .image_captioning_dataset import (COCOSegmentation,
+                                       ConceptualCaptionsSegmentation)
 
 datasets = {
     'pascal_voc': VOCSegmentation,
