@@ -27,9 +27,13 @@ from utils.metrics import compute_jaccard
 # specific to pytorch-v1 cuda-9.0
 # see: https://github.com/pytorch/pytorch/issues/15054#issuecomment-450191923
 # and: https://github.com/pytorch/pytorch/issues/14456
-torch.backends.cudnn.benchmark = True
-#torch.backends.cudnn.deterministic = True
+#torch.backends.cudnn.benchmark = False
+#torch.backends.cudnn.deterministic = True # needed for newer pytorch versions
 DEBUG = False
+
+# python train.py --dataset pascal_voc --cfg configs/voc_resnet38.yaml --exp baselines --run v01
+# python train.py --dataset concap --cfg configs/concap_resnet38.yaml --exp baselines --run v01
+# python train.py --dataset coco --cfg configs/coco_resnet38.yaml --exp baselines --run v01
 
 def rescale_as(x, y, mode="bilinear", align_corners=True):
     h, w = y.size()[2:]
@@ -39,14 +43,14 @@ def rescale_as(x, y, mode="bilinear", align_corners=True):
 class DecTrainer(BaseTrainer):
 
     def __init__(self, args, **kwargs):
+        self.root_dir = kwargs.pop('data_root', None)
         super(DecTrainer, self).__init__(args, **kwargs)
-
         # dataloader
-        self.trainloader = get_dataloader(args, cfg, 'train')
-        self.trainloader_val = get_dataloader(args, cfg, 'train_voc')
-        self.valloader = get_dataloader(args, cfg, 'val')
+        self.trainloader = get_dataloader(args, cfg, 'train', root=self.root_dir)
+        self.trainloader_val = get_dataloader(args, cfg, 'train_val', root=self.root_dir)
+        self.valloader = get_dataloader(args, cfg, 'val', root=self.root_dir)
         self.denorm = self.trainloader.dataset.denorm
-
+        
         self.nclass = get_num_classes(args)
         self.classNames = get_class_names(args)[:-1]
         assert self.nclass == len(self.classNames)
@@ -75,8 +79,9 @@ class DecTrainer(BaseTrainer):
             self.fixed_batch = torch.load(self.fixed_batch_path)
 
         # using cuda
-        self.enc = nn.DataParallel(self.enc).cuda()
-        self.criterion_cls = nn.DataParallel(self.criterion_cls).cuda()
+        device = torch.device('cuda')
+        self.enc = nn.DataParallel(self.enc).to(device) #.cuda()
+        self.criterion_cls = nn.DataParallel(self.criterion_cls).to(device) #.cuda()
 
     def step(self, epoch, image, gt_labels, train=False, visualise=False):
 
@@ -138,7 +143,6 @@ class DecTrainer(BaseTrainer):
         train_step = partial(self.step, train=True, visualise=False)
 
         for i, (image, gt_labels, _) in enumerate(self.trainloader):
-
             # masks
             losses, _, _, _ = train_step(epoch, image, gt_labels)
 
@@ -305,6 +309,7 @@ class DecTrainer(BaseTrainer):
 
 if __name__ == "__main__":
     args = get_arguments(sys.argv[1:])
+    print(args)
 
     # Reading the config
     cfg_from_file(args.cfg_file)
@@ -313,7 +318,7 @@ if __name__ == "__main__":
 
     print("Config: \n", cfg)
 
-    trainer = DecTrainer(args)
+    trainer = DecTrainer(args, data_root=cfg.TRAIN.DATA_ROOT)
     torch.manual_seed(0)
 
     timer = Timer()
@@ -326,10 +331,10 @@ if __name__ == "__main__":
         print("Epoch >>> ", epoch)
         
         log_int = 5 if DEBUG else 2
-        if epoch % log_int == 0:
-            with torch.no_grad():
-                if not DEBUG:
-                    time_call(trainer.validation, "Validation / Train: ", epoch, trainer.writer, trainer.trainloader_val)
-                time_call(trainer.validation, "Validation /   Val: ", epoch, trainer.writer_val, trainer.valloader, checkpoint=True)
+        # if epoch % log_int == 0:
+        #     with torch.no_grad():
+        #         if not DEBUG:
+        #             time_call(trainer.validation, "Validation / Train: ", epoch, trainer.writer, trainer.trainloader_val)
+        #         time_call(trainer.validation, "Validation /   Val: ", epoch, trainer.writer_val, trainer.valloader, checkpoint=True)
 
         time_call(trainer.train_epoch, "Train epoch: ", epoch)

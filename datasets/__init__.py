@@ -1,10 +1,11 @@
 from torch.utils import data
 from .pascal_voc import VOCSegmentation
-from .conceptual_captions import ConCapSegmentation
+from .image_captioning_dataset import COCOSegmentation, ConceptualCaptionsSegmentation
 
 datasets = {
     'pascal_voc': VOCSegmentation,
-    'concap' : ConCapSegmentation
+    'concap' : ConceptualCaptionsSegmentation,
+    'coco' : COCOSegmentation
 }
 
 def get_num_classes(args):
@@ -13,11 +14,11 @@ def get_num_classes(args):
 def get_class_names(args):
     return datasets[args.dataset.lower()].CLASSES
 
-def get_dataloader(args, cfg, split, batch_size=None, test_mode=None):
+def get_dataloader(args, cfg, split, batch_size=None, test_mode=None, root=None):
     assert split in ('train', 'train_val', 'val'), "Unknown split '{}'".format(split)
     dataset_name = args.dataset.lower()
     dataset_cls = datasets[dataset_name]
-    dataset = dataset_cls(cfg, split, test_mode)
+    dataset = dataset_cls(cfg, split, test_mode, root=root)
 
     kwargs = {'num_workers': args.workers, 'pin_memory': True}
     shuffle, drop_last = [True, True] if split == 'train' else [False, False]

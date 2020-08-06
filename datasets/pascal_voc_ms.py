@@ -14,10 +14,9 @@ import torchvision.transforms.functional as F
 
 
 def load_img_name_list(dataset_path, index = 0):
-
+    
     img_gt_name_list = open(dataset_path).read().splitlines()
     img_name_list = [img_gt_name.split(' ')[index].strip('/') for img_gt_name in img_gt_name_list]
-
     return img_name_list
 
 def load_label_name_list(dataset_path):

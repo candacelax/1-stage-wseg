@@ -9,15 +9,16 @@ import torchvision.transforms.functional as F
 from functools import partial
 
 class Compose:
+    def __init__(self, segtransform):
+        self.segtransform = segtransform
+        
     def __call__(self, image):
+        result = image
         for t in self.segtransform:
             result = t(result)
         return result
 
 class MaskCompose(Compose):
-    def __init__(self, segtransform):
-        self.segtransform = segtransform
-
     def __call__(self, image, label):
         # allow for intermediate representations
         result = (image, label)
@@ -90,10 +91,6 @@ class MaskNormalise(Normalise):
         image = self.norm(image)
         labels = self.__toByteTensor(labels)
         return image, labels
-
-class ToTensor:
-    def __call__(self, image):
-        return image
     
 class MaskToTensor:
     def __call__(self, image, mask):

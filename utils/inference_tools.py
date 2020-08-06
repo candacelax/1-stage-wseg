@@ -8,7 +8,11 @@ import torch.nn.functional as F
 from PIL import Image
 from utils.dcrf import crf_inference
 
-from datasets.pascal_voc_ms import MultiscaleLoader, CropLoader 
+from datasets.pascal_voc_ms import MultiscaleLoader as VOCMultiscaleLoader
+from datasets.pascal_voc_ms import CropLoader as VOCCropLoader
+from datasets.image_captioning_dataset_ms import (COCOMultiscaleLoader,
+                                                  ConceptualCaptionsMultiscaleLoader)
+from datasets.image_captioning_dataset_ms import COCOCropLoader, ConceptualCaptionsCropLoader
 
 class ResultWriter:
     
@@ -199,11 +203,19 @@ class PAMRWriter(ResultWriter):
                 scipy.misc.imsave(filepath, overlay255)
 
 
-def get_inference_io(method_name):
+def get_inference_io(method_name, dataset_name):
 
-    if method_name == "multiscale":
-        return MergeMultiScale, MultiscaleLoader
-    elif method_name == "multicrop":
-        return MergeCrops, CropLoader
+    if method_name == "multiscale" and dataset_name == "pascal_voc":
+        return MergeMultiScale, VOCMultiscaleLoader
+    elif method_name == "multicrop" and dataset_name == "pascal_voc":
+        return MergeCrops, VOCCropLoader
+    elif method_name == "multiscale" and dataset_name == "concap":
+        return MergeMultiScale, ConceptualCaptionsMultiscaleLoader
+    elif method_name == "multiscale" and dataset_name == "coco":
+        return MergeMultiScale, COCOMultiscaleLoader
+    elif method_name == "multicrop" and dataset_name == "concap":
+        return MergeCrops, ConceptualCaptionsCropLoader
+    elif method_name == "multicrop" and dataset_name == "concap":
+        return MergeCrops, COCOCropLoader
     else:
-        raise NotImplementedError("Method {} is unknown".format(method_name))
+        raise NotImplementedError(f"Method {method_name} for dataset {dataset_name} is unknown")

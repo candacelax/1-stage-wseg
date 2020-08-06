@@ -31,6 +31,10 @@ from utils.timer import Timer
 from utils.dcrf import crf_inference
 from utils.inference_tools import get_inference_io
 
+
+# python infer_val.py --dataset coco --cfg configs/coco_resnet38.yaml --exp baselines --run v01 --resume e020Xs0.928 --infer-list ../data/coco/val_coco.tsv --workers 1 --mask-output-dir predicted-masks
+# python infer_val.py --dataset concap --cfg configs/concap_resnet38.yaml --exp baselines --run v01 --resume e020Xs0.928 --infer-list ../data/conceptual-captions/val_concap.tsv --workers 1 --mask-output-dir predicted-masks
+
 def check_dir(base_path, name):
 
     # create the directory
@@ -59,7 +63,8 @@ if __name__ == '__main__':
 
     # Loading the model
     model = get_model(cfg.NET, num_classes=cfg.TEST.NUM_CLASSES)
-    checkpoint = Checkpoint(args.snapshot_dir, max_n = 5)
+    #checkpoint = Checkpoint(args.snapshot_dir, max_n = 5)
+    checkpoint = Checkpoint("pretrained-models", max_n = 5)
     checkpoint.add_model('enc', model)
     checkpoint.load(args.resume)
 
@@ -71,14 +76,10 @@ if __name__ == '__main__':
 
     assert hasattr(model, 'normalize')
     transform = tf.Compose([np.asarray, model.normalize])
-
-    WriterClass, DatasetClass = get_inference_io(cfg.TEST.METHOD)
-
+    WriterClass, DatasetClass = get_inference_io(cfg.TEST.METHOD, args.dataset)
     dataset = DatasetClass(args.infer_list, cfg.TEST, transform=transform)
-
     dataloader = DataLoader(dataset, shuffle=False, num_workers=args.workers, \
                             pin_memory=True, batch_size=cfg.TEST.BATCH_SIZE)
-
     model = nn.DataParallel(model).cuda()
 
     timer = Timer()
@@ -88,14 +89,13 @@ if __name__ == '__main__':
     pool = mp.Pool(processes=args.workers)
     writer = WriterClass(cfg.TEST, palette, args.mask_output_dir)
 
-    for iter, (img_name, img_orig, images_in, pads, labels, gt_mask) in enumerate(tqdm(dataloader)):
-
+    for iter_, (img_name, img_orig, images_in, pads, labels, gt_mask) in enumerate(tqdm(dataloader)):
+        # TODO make sure these are not being repeated
         # cutting the masks
         masks = []
 
         with torch.no_grad():
             cls_raw, masks_pred = model(images_in)
-
             if not cfg.TEST.USE_GT_LABELS:
                 cls_sigmoid = torch.sigmoid(cls_raw)
                 cls_sigmoid, _ = cls_sigmoid.max(0)
@@ -113,8 +113,12 @@ if __name__ == '__main__':
         #writer.save(img_name[0], image, masks_pred, pads, labels, gt_mask[0])
         pool.apply_async(writer.save, args=(img_name[0], image, masks_pred, pads, labels, gt_mask[0]))
 
-        timer.update_progress(float(iter + 1) / N)
-        if iter % 100 == 0:
+        #for i in img_name:
+        #    base = i.split("/")[-1].strip(".jpg")
+        #    print(f"feh {i} predicted-masks/{base}.png")
+
+        timer.update_progress(float(iter_ + 1) / N)
+        if iter_ % 100 == 0:
             msg = "Finish time: {}".format(timer.str_est_finish())
             tqdm.write(msg)
             sys.stdout.flush()
