@@ -145,7 +145,6 @@ class DecTrainer(BaseTrainer):
         train_step = partial(self.step, train=True, visualise=False)
 
         for i, (image, gt_labels, _) in enumerate(self.trainloader):
-            print("on epoch", epoch)
             # masks
             losses, _, _, _ = train_step(epoch, image, gt_labels)
 
