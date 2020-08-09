@@ -145,6 +145,7 @@ class DecTrainer(BaseTrainer):
         train_step = partial(self.step, train=True, visualise=False)
 
         for i, (image, gt_labels, _) in enumerate(self.trainloader):
+            print("on epoch", epoch)
             # masks
             losses, _, _, _ = train_step(epoch, image, gt_labels)
 
@@ -171,7 +172,7 @@ class DecTrainer(BaseTrainer):
 
             if DEBUG and i > 100:
                 break
-
+        
         def publish_loss(stats, name, t, prefix='data/'):
             print("{}: {:4.3f}".format(name, stats.summarize_key(name)))
             #self.writer.add_scalar(prefix + name, stats.summarize_key(name), t)
@@ -333,10 +334,10 @@ if __name__ == "__main__":
         print("Epoch >>> ", epoch)
         
         log_int = 5 if DEBUG else 2
-        # if epoch % log_int == 0:
-        #     with torch.no_grad():
-        #         if not DEBUG:
-        #             time_call(trainer.validation, "Validation / Train: ", epoch, trainer.writer, trainer.trainloader_val)
-        #         time_call(trainer.validation, "Validation /   Val: ", epoch, trainer.writer_val, trainer.valloader, checkpoint=True)
+        if epoch % log_int == 0:
+            with torch.no_grad():
+                if not DEBUG:
+                    time_call(trainer.validation, "Validation / Train: ", epoch, trainer.writer, trainer.trainloader_val)
+                time_call(trainer.validation, "Validation /   Val: ", epoch, trainer.writer_val, trainer.valloader, checkpoint=True)
 
         time_call(trainer.train_epoch, "Train epoch: ", epoch)
